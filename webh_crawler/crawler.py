@@ -9,6 +9,7 @@ from urllib.parse import urljoin
 
 
 dmn = "hackthissite.org"
+target_links = []
 
 def request(uri):
     try:
@@ -59,17 +60,23 @@ def extract_uris(content_uri):
         # urljoin transform uri like /news/views/727 to a full uri https://www.hackthissite.org/news/views/727,
         # and it leaves the other uri without modifications.
         uri_ = urljoin("https://www." + dmn, uri_)
-        if (dmn in uri_):
+        # Discard all no related links of dmn="hackthissite.org",
+        # repeated links and links containing #
+        if (dmn in uri_ and uri_ not in target_links and '#' not in uri_):
+            target_links.append(uri_)
             print(uri_)
-     
+            extract_uris(uri_)
 
 
 def spider(): 
     response = request(dmn)
     # .decode('utf-8', 'ignore') is to transfor byte to string as response.content retrives
-    # the website in byte format
+    # the website in byte format. Further, the 'ignore' argument is to discard the caracters
+    # .decode can not transform to. The discarted characters are not important as this code
+    # focuses on extracting links, yet it can not contain special charateres.
     # print(response.content.decode('utf-8', "ignore"))
     extract_uris(response.content.decode('utf-8', "ignore"))
+    print(len(target_links))
 
 
 
